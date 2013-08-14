@@ -230,10 +230,14 @@ class Fluent::DataCounterOutput < Fluent::Output
     @last_checked ||= Fluent::Engine.now
     while true
       sleep 0.5
-      if Fluent::Engine.now - @last_checked >= @tick
-        now = Fluent::Engine.now
-        flush_emit(now - @last_checked)
-        @last_checked = now
+      begin
+        if Fluent::Engine.now - @last_checked >= @tick
+          now = Fluent::Engine.now
+          flush_emit(now - @last_checked)
+          @last_checked = now
+        end
+      rescue => e
+        $log.warn "#{e.class} #{e.message} #{e.backtrace.first}"
       end
     end
   end
@@ -258,6 +262,8 @@ class Fluent::DataCounterOutput < Fluent::Output
     countups(tag, c)
 
     chain.next
+  rescue => e
+    $log.warn "#{e.class} #{e.message} #{e.backtrace.first}"
   end
 
   # Store internal status into a file
