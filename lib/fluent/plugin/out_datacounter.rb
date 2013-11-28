@@ -268,6 +268,9 @@ class Fluent::DataCounterOutput < Fluent::Output
       Pathname.new(file_path).open('wb') do |f|
         @saved_at = Fluent::Engine.now
         @saved_duration = @saved_at - @last_checked
+        @counts.each do |tag, counts|
+          @counts.delete(tag) if counts.all?(&:zero?)
+        end
         Marshal.dump({
           :counts           => @counts,
           :saved_at        => @saved_at,
